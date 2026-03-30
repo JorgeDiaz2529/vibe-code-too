@@ -12,17 +12,18 @@ class Ticket:
         self.actual_speed = actual_speed
         self.fine_amount = fine_amount
 
-        def calculate_fine(actual_speed):
-            if actual_speed > 80:
-                return 500
-            elif actual_speed > 70:
-                return 300
-            elif actual_speed > 60:
-                return 100
-            elif actual_speed > 50:
-                return 75
-            else:
-                return 0
-        
+    def calculate_fine(self, actual_speed):
+        if actual_speed > 80:
+            return 500
+        elif actual_speed > 70:
+            return 300
+        elif actual_speed > 60:
+            return 100
+        elif actual_speed > 50:
+            return 75
+        else:
+            return 0
+    
 
     def issue_ticket(self):
+        pass
