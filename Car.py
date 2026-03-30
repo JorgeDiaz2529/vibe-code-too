@@ -5,7 +5,7 @@ class Car:
         self.model = model
 
         #Randomize car's speed between 0 and 100
-        import randome
+        import random
         self.speed = random.randint(0, 100)
 
         #Example usage of the cars
