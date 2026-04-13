@@ -1,12 +1,12 @@
 import os
 import pygame
 from Car import Car
-from radarClass import LINE2_X, Radar
+from radarClass2 import LINE2_X, Radar
 from classSkeleton import Radar as SkeletonRadar, Ticket
 
 # Filepaths
-background_path = "Background.jpg"
-speedlimit_path = "Speedlimit.png"
+background_path = "images/Background.jpg"
+speedlimit_path = "images/Speedlimit.png"
 
 WIDTH, HEIGHT = 612, 408
 pygame.init()
@@ -40,6 +40,7 @@ while running:
             running = False
 
     # Advance the test car across the screen and check radar speed once
+    ## FOR LOOP HERE TO CHECK EVERY CAR!!
     car.x += 1
     if car.x == LINE2_X:
         radar.check_speed(car)
