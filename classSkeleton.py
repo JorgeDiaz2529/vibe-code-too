@@ -5,12 +5,12 @@ class Radar:
         self.number_of_cars = number_of_cars
         self.ticket_quota = ticket_quota
 
-
 class Ticket:
-    def __init__(self, lisence_plate, actual_speed, fine_amount):
+    def __init__(self, lisence_plate, actual_speed, fine_amount, car):
         self.licence_plate = lisence_plate
         self.actual_speed = actual_speed
         self.fine_amount = fine_amount
+        self.car = car
 
     def calculate_fine(self, actual_speed):
         if actual_speed > 80:
