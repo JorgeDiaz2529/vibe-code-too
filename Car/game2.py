@@ -4,10 +4,11 @@ import pygame
 from Car2 import Car, sample_cars
 from radarClass2 import LINE1_X, LINE2_X, Radar
 from classSkeleton import Ticket
+import pygwidgets
 
 # Filepaths
-background_path = "Background.jpg"
-speedlimit_path = "Speedlimit.png"
+background_path = ".\images\Background.jpg"
+speedlimit_path = ".\images\Speedlimit.png"
 
 WIDTH, HEIGHT = 612, 408
 pygame.init()
@@ -15,6 +16,11 @@ pygame.font.init()
 font = pygame.font.SysFont(None, 24)
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 clock = pygame.time.Clock()
+
+#TICKETS
+ticket_button = pygwidgets.TextButton(screen, (0,310), "Issue Ticket")
+issuedTickets = [] # for all tickets issued through the button
+unissuedTickets = [] # in case of despawned cars out of range
 
 # Load background or fallback to a solid surface
 if os.path.exists(background_path):
@@ -45,6 +51,7 @@ class GameCar:
     def __init__(self, car, color):
         self.car = car
         self.color = color
+        self.text_color = (255,255,255)
         self.x = random.randint(-300, -60)
         self.car.x = self.x
         self.lane = random.randint(0, LANE_COUNT - 1)
@@ -55,6 +62,7 @@ class GameCar:
         self.active = True
         self.last_speed = 0
         self.last_fine = 0
+        self.ticket = None
 
     def update(self):
         if not self.active:
@@ -83,20 +91,26 @@ class GameCar:
 
         if self.x >= YELLOW_LINE_X and not self.passed_yellow:
             self.passed_yellow = True
-            ticket = Ticket(self.car.license_plate, self.car.speed, 0)
-            self.last_fine = ticket.calculate_fine(self.car.speed)
+            self.ticket = Ticket(self.car.license_plate, self.car.speed, 0, self)
+            self.last_fine = self.ticket.calculate_fine(self.car.speed)
+
             if self.last_fine > 0:
-                radar.ticket_count += 1
+                self.ticket.fine_amount = self.last_fine
+                unissuedTickets.append(self.ticket)
+
                 global last_fine
                 last_fine = self.last_fine
 
         if self.x > WIDTH + 100:
+            if self.ticket is not None and self.ticket in unissuedTickets:
+                unissuedTickets.remove(self.ticket)
+
             self.active = False
 
     def draw(self, surface):
         car_rect = pygame.Rect(self.x, lane_ys[self.lane] - 20, 60, 40)
         pygame.draw.rect(surface, self.color, car_rect)
-        label = font.render(f"{self.car.license_plate}: {self.car.speed} MPH", True, (255, 255, 255))
+        label = font.render(f"{self.car.license_plate}: {self.car.speed} MPH", True, self.text_color)
         surface.blit(label, (self.x, lane_ys[self.lane] - 40))
 
 
@@ -133,7 +147,14 @@ def spawn_car():
     game_car.car.x = game_car.x
     return game_car
 
-radar = Radar(ticket_quota=10)
+def get_total_fine():
+    total = 0
+    for ticket in issuedTickets:
+        total += ticket.fine_amount
+
+    return total
+
+radar = Radar(ticket_quota=5)
 cars = []
 for i in range(3):
     car = spawn_car()
@@ -160,6 +181,17 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
+        if ticket_button.handleEvent(event):
+            if len(unissuedTickets) != 0 and radar.ticket_count < radar.ticket_quota:
+                ticket = unissuedTickets.pop()
+                issuedTickets.append(ticket)
+                radar.ticket_count += 1
+                
+                ticket.car.text_color = (255,30,30) #indicator
+                print(get_total_fine()) #debug
+            elif len(unissuedTickets) == 0:
+                print("no tickets!")
+
     if now - last_spawn_time >= spawn_interval:
         cars.append(spawn_car())
         last_spawn_time = now
@@ -184,13 +216,15 @@ while running:
             car.draw(screen)
 
     # Display ticket count
-    text_parts = [f"Tickets: {radar.ticket_count}"]
+    text_parts = [f"Tickets: {radar.ticket_count}/{radar.ticket_quota}"]
     if last_red_speed is not None:
         text_parts.append(f"Last Speed: {last_red_speed} MPH")
     if last_fine is not None:
         text_parts.append(f"Fine: ${last_fine}")
     ticket_text = font.render(" ".join(text_parts), True, (255, 255, 255))
     screen.blit(ticket_text, (10, 10))
+
+    ticket_button.draw()
 
     pygame.display.flip()
     clock.tick(60)
