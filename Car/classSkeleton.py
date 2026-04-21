@@ -6,22 +6,15 @@ class Radar:
         self.ticket_quota = ticket_quota
 
 class Ticket:
-    def __init__(self, license_plate, actual_speed, fine_amount):
+    def __init__(self, license_plate, actual_speed, fine_amount, car):
         self.license_plate = license_plate
         self.actual_speed = actual_speed
         self.fine_amount = fine_amount
+        self.car = car
 
-    def calculate_fine(self, actual_speed, speed_limit=65):
-        if actual_speed > speed_limit + 20:
-            return 500
-        elif actual_speed > speed_limit + 10:
-            return 300
-        elif actual_speed > speed_limit:
-            return 100
-        elif actual_speed < 30:
-            return 150
-        else:
-            return 0
+    def calculate_fine(self, actual_speed, speed_limit):
+        if actual_speed > speed_limit:
+            return 250
     
 
     def issue_ticket(self):
